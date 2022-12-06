@@ -7,18 +7,18 @@ LD=arm-$(ARCH)-ld
 ASFLAGS=-g
 LDFLAGS=
 
-UTIL=syscalls.o util.o
-DAY1=day1.o
+DAY1=util.o syscalls.o day1.o
 
-all: day1
+all: init day1
 
-day1: $(DAY1)
+init:
+	mkdir -p bin
+
+day1: $(UTIL) $(DAY1)
 	$(LD) $(LDFLAGS) $(UTIL) $(DAY1) -o bin/$@
 
-util: $(UTIL)
-
 .o:
-	$(AS) $(ASFLAGS) $<.s -o $(OBJ_DIR)/$@
+	$(AS) $(ASFLAGS) $<.s -o $@
 
 clean:
-	rm -f *.o
+	rm -f *.o bin/*

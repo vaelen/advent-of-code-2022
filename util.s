@@ -312,3 +312,4 @@ eagain: .asciz "[ERROR] Try Again: Read would block but file is marked non-block
 efault: .asciz "[ERROR] Bad Address: Buffer is outside your addressible address space"
 eisdir: .asciz "[ERROR] Trying to Read From a Directory Instead of a File"
 einval: .asciz "[ERROR] Invalid Argument: Could not read file"
+
