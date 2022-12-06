@@ -74,10 +74,102 @@
         8. Print sum
 */        
 
-.global exit
 .global _start
+.global exit
+
+.global open_read
+.global check_read_error
+.global puts
+.global read
+.global atoi
 
 _start:
-    MOV     R0, #0
+    // Store count and max in registers
+    MOV     R12, #0 // sum
+    MOV     R11, #0 // max
+
+    // Get program arguments
+    POP     {R1}    // number of arguments
+    CMP     R1, #2  // check for at least 2 arguments
+    BLT     no_arguments
+    POP     {R1}    // pointer to first argument (program name)
+    POP     {R1}    // pointer to second argument (input file name)
+
+    // Print input filename
+    LDR     R0, =path_label
+    BL      fputs
+
+    // Open the input file
+    MOV     R0, R1
+    BL      puts
+    BL      open_read
+    BL      check_read_error
+    CMP     R0, #0  // Check for an error opening the file
+    BMI     error
+    MOV     R4, R0  // Move file handle from R0 to R4
+
+    // Read a line of data
+readline:
+    MOV     R10, #0         // loop counter
+    LDR     R9, =buffer     // buffer pointer
+readline_loop:
+    MOV     R0, R4          // file number
+    MOV     R1, R9          // buffer pointer
+    MOV     R2, #1          // bytes to read
+    BL      read            // read byte
+    CMP     R0, #0          // Check for EOF
+    BLE     readline_done
+    LDRB    R8, [R9]        // Load byte that was just read
+    CMP     R8, #'\n'       // Check for newline
+    BEQ     readline_done
+    CMP     R8, #'\r'       // Skip carriage return
+    ADDNE   R9, #1          // increase buffer pointer
+    ADDNE   R10, #1         // Increase loop counter
+    CMP     R10, #20        // Check for the end of the buffer
+    BLT     readline_loop
+readline_done:
+    BL      check_read_error
+    MOV     R0,#0           // Put a 0 at the end of the buffer
+    STRB    R0,[R9]
+
+    // Check for an empty line
+    LDR     R9,=buffer      
+    LDRB    R0,[R9]
+    CMP     R0,#0
+    BEQ     next_section
+
+    // Convert string to integer and add to sum
+    LDR     R0,=buffer
+    BL      atoi            // Covert string to integer
+    ADD     R12,R12,R0      // Add value to sum
+    B       readline        // Loop
+
+next_section:
+    CMP     R12,#0          // If the sum is 0, this is EOF
+    BEQ     done
+    CMP     R12,R11         // Compare sum to max
+    MOVGT   R11,R12         // Copy sum to max if the sum is larger
+    MOV     R12,#0          // Clear sum
+    B       readline        // Read next line
+
+no_arguments:
+    LDR     R0,=no_args     // Print a help message
+    BL      puts
+    B       error
+
+done:
+    MOV     R0,R11          // Copy max to R0
+    BL      print_r0
+    BL      newline
+    MOV     R0, #0          // Return success
     B       exit
 
+error:
+    MOV     R0, #1          // Return error
+    B       exit
+
+.data
+
+path_label: .asciz "File: "
+no_args:    .asciz "Please provide a file name."
+buffer:     .byte  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0

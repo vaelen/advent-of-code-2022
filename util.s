@@ -25,6 +25,7 @@
 // Helper functions
 
 // Exported Methods
+    .global atoi
     .global itoa
     .global div
     .global word_to_binary
@@ -42,6 +43,33 @@
     .global check_read_error
 
 // Code Section
+
+atoi:
+    // Converts a string into an integer
+    // Arguments: memory address in R0
+    // Returns: result in R0
+    PUSH    {R1-R4,LR}          // Push the existing registers on to the stack
+    MOV     R1,#0               // Byte read
+    MOV     R2,#0               // Result
+    MOV     R3,#10              // Used for multiplying later on
+    MOV     R4,#1               // Used to increment pointer
+atoi_loop:
+    LDRB    R1,[R0]             // Load next byte
+    CMP     R1,#0               // Check for end of string
+    BEQ     atoi_done
+    CMP     R1,#48              // 48 is 0 in ASCII
+    BLT     atoi_next           // TODO: What should we really do here?
+    CMP     R1,#57              // 57 is 9 in ASCII
+    BGT     atoi_next           // TODO: What should we really do here?
+    SUB     R1,R1,#48           // Subtract 48 (ASCII 0)
+    MUL     R2,R2,R3            // Multiple result by 10
+    ADD     R2,R2,R1            // Add value to result
+atoi_next:
+    ADD     R0,R0,R4            // Increment pointer
+    B       atoi_loop
+atoi_done:
+    MOV     R0,R2               // Return result in R0
+    POP     {R1-R4,PC}          // Pop the registers off of the stack and return
     
 itoa:
     // Converts an integer to a string
@@ -275,6 +303,12 @@ check_read_error:
     PUSH    {R0,R1,LR}
     MOV     R1,R0
     MOV     R0,#0
+    CMP     R1,#0               // Check for any error (a negative number)
+    LDRMI   R0,=eunkwn 
+    CMP     R11,#-1             // Operation not permitted
+    LDREQ   R0, =eperm
+    CMP     R1,#-2              // No such file or directory
+    LDREQ   R0, =enoent
     CMP     R1,#-4              // Check for interrupted system call
     LDREQ   R0,=eintr
     CMP     R1,#-5              // Check for IO error
@@ -305,6 +339,8 @@ R_s:            .asciz "R"
 colon_s:        .asciz ": "
 
 // Error Codes
+eperm:  .asciz "[ERROR] Operation not permitted."
+enoent: .asciz "[ERROR] No such file or directory."
 eintr:  .asciz "[ERROR] Interrupted System Call: The call was interrupted by a signal before any data was read."
 eio:    .asciz "[ERROR] I/O Error"
 ebadf:  .asciz "[ERROR] Bad File Number: Not a valid file descriptor"
@@ -312,4 +348,5 @@ eagain: .asciz "[ERROR] Try Again: Read would block but file is marked non-block
 efault: .asciz "[ERROR] Bad Address: Buffer is outside your addressible address space"
 eisdir: .asciz "[ERROR] Trying to Read From a Directory Instead of a File"
 einval: .asciz "[ERROR] Invalid Argument: Could not read file"
+eunkwn: .asciz "[ERROR] Unknown error"
 

@@ -5,7 +5,7 @@ ARCH=linux-gnueabi
 AS=arm-$(ARCH)-as
 LD=arm-$(ARCH)-ld
 ASFLAGS=-g
-LDFLAGS=
+LDFLAGS=-nostdlib
 
 DAY1=util.o syscalls.o day1.o
 

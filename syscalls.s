@@ -76,6 +76,7 @@ open:
     //   R0 = Memory address of null terminated path string.
     //   R1 = Flags
     //   R2 = Mode
+    // Returns file handle in R3
     PUSH    {R7,LR}             // Push the existing registers on to the stack
     MOV     R7,#5               // Syscall number: 5 is open()
     SWI     0                   // Open file handle
@@ -111,6 +112,7 @@ getrandom:
 open_read:
     // Opens a file for reading
     // Arguments: R0 = Memory address of null termianted path string
+    // Returns file handle in R3
     PUSH    {R1,R2,LR}          // Push the existing registers on to the stack
     MOV     R1,#0               // Read Only Flag
     MOV     R2,#0               // Mode (Ignored)
@@ -120,6 +122,7 @@ open_read:
 open_write:
     // Opens a file for writing
     // Arguments: R0 = Memory address of null termianted path string
+    // Returns file handle in R3
     PUSH    {R1,R2,LR}          // Push the existing registers on to the stack
     MOV     R1,#1               // Write Only Flag
     MOV     R2,#0               // Mode (Use Default)
